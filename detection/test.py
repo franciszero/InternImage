@@ -253,4 +253,5 @@ def main():
 
 
 if __name__ == '__main__':
+    os.environ.setdefault('RANK', '0')
     main()
