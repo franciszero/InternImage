@@ -9,5 +9,5 @@ PORT=${PORT:-29511}
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 python $(dirname "$0")/test.py \
 $CONFIG $CHECKPOINT \
---gpu-ids 0 1 \
+--gpu-ids 0 1 2 3 \
 --launcher pytorch ${@:4}
