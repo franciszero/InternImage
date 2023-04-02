@@ -8,6 +8,7 @@ import concurrent.futures
 import json
 import mmcv
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Generate MMDetection Annotations for Crowdhuman-like dataset')
     parser.add_argument('--dataset', help='dataset name', type=str)
@@ -16,12 +17,14 @@ def parse_args():
     args = parser.parse_args()
     return args.dataset, args.dataset_split
 
+
 def load_func(fpath):
     assert os.path.exists(fpath)
     with open(fpath, 'r') as fid:
         lines = fid.readlines()
     records = [json.loads(line.strip('\n')) for line in lines]
     return records
+
 
 def decode_annotations(records, dataset_path):
     rec_ids = list(range(len(records)))
@@ -30,7 +33,7 @@ def decode_annotations(records, dataset_path):
     ann_id = 1
     for idx, rec_id in enumerate(rec_ids):
         img_id = records[rec_id]['ID']
-        img_url = dataset_path + 'Images/' + img_id + '.jpg'
+        img_url = dataset_path + 'CrowdHuman_val/' + img_id + '.jpg'
         assert os.path.exists(img_url)
         im = Image.open(img_url)
         im_w, im_h = im.width, im.height
@@ -44,6 +47,7 @@ def decode_annotations(records, dataset_path):
             id=idx
         )
         img_list.append(img_dict)
+        print(img_dict)
         for ii in range(gt_box_len):
             each_data = gt_box[ii]
             x, y, w, h = each_data['fbox']
@@ -66,13 +70,16 @@ def decode_annotations(records, dataset_path):
                 iscrowd=1 if tag == -2 else 0,
                 image_id=idx,
                 bbox=[x, y, w, h],
+                segmentation=[],
                 category_id=1,
                 id=ann_id,
                 # ignore=1 if tag == -2 else 1,
             )
             ann_id += 1
             ann_list.append(ann_dict)
-    cate_list = [{'supercategory': 'none', 'id': 1, 'name': 'person'}]
+        if idx >= 10:
+            break
+    cate_list = [{'supercategory': 'none', 'id': 1, 'name': '1'}]
     json_dict = dict(
         images=img_list,
         annotations=ann_list,
@@ -80,8 +87,9 @@ def decode_annotations(records, dataset_path):
     )
     return json_dict
 
+
 if __name__ == "__main__":
-    dataset_name, dataset_type = parse_args()
+    dataset_name, dataset_type = "CrowdHuman", "val"  # parse_args()
     dataset_path = 'data/%s/' % dataset_name
     ch_file_path = dataset_path + 'annotations/annotation_%s.odgt' % dataset_type
     json_file_path = dataset_path + 'annotations/annotation_%s.json' % dataset_type
